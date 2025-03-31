@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <Button
+            android:id="@+id/btn_select_source"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="select input source" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/bg_opt_item"
+            android:orientation="vertical"
+            android:paddingHorizontal="2dp"
+            android:paddingVertical="4dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="ScaleType:"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <RadioGroup
+                android:id="@+id/tg_scale_inside"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbtn_inside_start"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="INSIDE_START"
+                    android:text="InsideStart" />
+
+                <RadioButton
+                    android:id="@+id/rbtn_inside_center"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="INSIDE_CENTER"
+                    android:text="InsideCenter" />
+
+
+                <RadioButton
+                    android:id="@+id/rbtn_inside_end"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="INSIDE_END"
+                    android:text="InsideEnd" />
+
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/tg_scale_crop"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbtn_crop_start"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="CROP_START"
+                    android:text="CropStart" />
+
+                <RadioButton
+                    android:id="@+id/rbtn_crop_center"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="CROP_CENTER"
+                    android:text="CropCenter" />
+
+
+                <RadioButton
+                    android:id="@+id/rbtn_crop_end"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="CROP_END"
+                    android:text="CropEnd" />
+
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/tg_scale_other"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rbtn_fill"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:tag="FILL"
+                    android:text="Fill" />
+
+                <RadioButton
+                    android:id="@+id/rbtn_default"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:text="None" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1" />
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <FrameLayout
+                android:id="@+id/fl_tv_preview"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="@android:color/black"
+                app:layout_constraintDimensionRatio="16:9"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextureView
+                    android:id="@+id/tv_preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:paddingHorizontal="4dp"
+                    android:paddingVertical="2dp"
+                    android:shadowColor="@android:color/black"
+                    android:shadowRadius="5.0"
+                    android:text="TextureView (16:9)"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </FrameLayout>
+
+            <SurfaceView
+                android:id="@+id/sv_preview_3_4"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="4dp"
+                app:layout_constraintDimensionRatio="3:4"
+                app:layout_constraintEnd_toStartOf="@id/sv_preview_4_3"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/fl_tv_preview" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="2dp"
+                android:shadowColor="@android:color/black"
+                android:shadowRadius="5.0"
+                android:text="SurfaceView (3:4)"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/sv_preview_3_4"
+                app:layout_constraintEnd_toEndOf="@id/sv_preview_3_4" />
+
+
+            <SurfaceView
+                android:id="@+id/sv_preview_4_3"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintDimensionRatio="4:3"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/sv_preview_3_4"
+                app:layout_constraintTop_toBottomOf="@id/fl_tv_preview" />
+
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="2dp"
+                android:shadowColor="@android:color/black"
+                android:shadowRadius="5.0"
+                android:text="SurfaceView (4:3)"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/sv_preview_4_3"
+                app:layout_constraintEnd_toEndOf="@id/sv_preview_4_3" />
+
+            <SurfaceView
+                android:id="@+id/sv_preview_2_1"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toBottomOf="@id/sv_preview_3_4"
+                app:layout_constraintDimensionRatio="2:1"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="@id/sv_preview_4_3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="2dp"
+                android:shadowColor="@android:color/black"
+                android:shadowRadius="5.0"
+                android:text="SurfaceView (2:1)"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@id/sv_preview_2_1"
+                app:layout_constraintEnd_toEndOf="@id/sv_preview_2_1" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btn_download"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="24dp"
+        android:src="@android:drawable/stat_sys_download_done" />
+
+</FrameLayout>

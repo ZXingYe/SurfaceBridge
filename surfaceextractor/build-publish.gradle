@@ -1,0 +1,43 @@
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+def mavenGroupId = 'io.zxingye.library'
+def sdkVersion = "1.0.0-beta1"
+
+Properties properties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    properties.load(new FileInputStream(localPropertiesFile))
+}
+
+android {
+    publishing {
+        singleVariant('release') {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                groupId mavenGroupId
+                artifactId project.getName()
+                version sdkVersion
+                from components.release
+            }
+
+        }
+        repositories {
+            maven {
+                url 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                credentials {
+                    username properties.getProperty("maven.username")
+                    password properties.getProperty("maven.password")
+                }
+            }
+        }
+    }
+}
