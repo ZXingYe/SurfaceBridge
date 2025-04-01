@@ -1,7 +1,5 @@
 package io.zxingye.library.surfaceextractor;
 
-import android.annotation.SuppressLint;
-import android.media.ImageReader;
 import android.opengl.GLES20;
 
 public class EglProgramYUYV extends EglProgram {
@@ -14,23 +12,23 @@ public class EglProgramYUYV extends EglProgram {
     }
 
     @Override
-    protected void viewport(int width, int height) {
-        GLES20.glViewport(0, 0, width / 2, height);
+    protected int getRealViewportWidth(int width) {
+        return width / 2;
     }
 
     @Override
-    protected void onDrawBefore(int width, int height) {
+    protected int getRealViewportHeight(int height) {
+        return height;
+    }
+
+    @Override
+    protected void onDraw(int width, int height) {
         GLES20.glUniform1f(offsetLoc, 1.f / (float) width);
     }
 
     @Override
-    protected void onDrawAfter(int width, int height) {
-        // do nothing
-    }
-
-    @SuppressLint("WrongConstant")
-    public static ImageReader createImageReader(int width, int height) {
-        return EglTool.createImageReader(width / 2, height);
+    public FrameFormat getFrameFormat() {
+        return FrameFormat.YUYV;
     }
 
     private static final String FRAGMENT_SHADER_RGB_TO_YUYV = "" +

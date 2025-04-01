@@ -3,11 +3,13 @@ package io.zxingye.library.surfaceextractor;
 import android.graphics.SurfaceTexture;
 import android.os.Handler;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 
-import java.util.ArrayList;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import io.zxingye.library.surfaceextractor.transform.Transform;
@@ -38,29 +40,30 @@ public class SurfaceExtractor {
         return result[0];
     }
 
-    private final List<EglImageReader> imageReaderList = new ArrayList<>();
+    private final Map<OnFrameListener, EglFrameReaderHelper> onFrameListenerMap = new HashMap<>();
     private final float[] textureMatrix = new float[16];
+    private final int[] texSize = new int[2];
     private final EglCore eglCore;
     private final SurfaceTexture inputSurfaceTexture;
     private final Handler eglHandler;
     private int oesTextureId;
-    private int inputWidth;
-    private int inputHeight;
+    private Size inputSize;
 
     private SurfaceExtractor(EglCore eglCore, int oesTextureId, Handler handler) {
         this.eglCore = eglCore;
         this.oesTextureId = oesTextureId;
         this.eglHandler = handler;
         this.inputSurfaceTexture = new InnerSurfaceTexture(oesTextureId, this::drawSurface, eglHandler);
+        this.inputSize = new Size(-1, -1);
         Log.i(TAG, "create: " + handler.getLooper().getThread().getName());
     }
 
-    public synchronized void release() {
+    public void release() {
         run(() -> {
-            for (EglImageReader imageReader : imageReaderList) {
-                imageReader.release();
+            for (EglFrameReaderHelper imageReader : onFrameListenerMap.values()) {
+                imageReader.close();
             }
-            imageReaderList.clear();
+            onFrameListenerMap.clear();
             if (inputSurfaceTexture != null) {
                 inputSurfaceTexture.release();
             }
@@ -82,60 +85,73 @@ public class SurfaceExtractor {
         inputSurfaceTexture.setDefaultBufferSize(width, height);
     }
 
-    public void putOutputSurface(Surface surface, Transform transform) {
-        putOutputSurface(surface, -1, -1, transform);
+    public void putOutputSurface(Surface surface,
+                                 Transform transform) {
+        putOutputSurface(surface, new Size(-1, -1), transform);
     }
 
-    public void putOutputSurface(Surface surface, int width, int height, Transform transform) {
-        run(() -> eglCore.putSurface(surface, width, height, FrameFormat.RGBA_8888, transform));
+    public void putOutputSurface(Surface surface,
+                                 Size surfaceSize,
+                                 Transform transform) {
+        run(() -> eglCore.putSurface(surface, surfaceSize, transform));
     }
 
     public void removeOutputSurface(Surface surface) {
         awaitRun(() -> eglCore.removeSurface(surface));
     }
 
-    public boolean hasOutputSurface(Surface surface) {
-        return eglCore != null && eglCore.hasSurface(surface);
-    }
-
-    public void addOnFrameListener(FrameFormat format, Transform transform, OnImageFrameListener listener) {
-        addOnFrameListener(format, -1, -1, transform, listener);
+    public void addOnFrameListener(FrameFormat format,
+                                   Transform transform,
+                                   OnFrameListener listener) {
+        addOnFrameListener(format, false, transform, listener);
     }
 
     public void addOnFrameListener(FrameFormat format,
-                                   int outputWidth,
-                                   int outHeight,
+                                   boolean directBuffer,
                                    Transform transform,
-                                   OnImageFrameListener listener) {
+                                   OnFrameListener listener) {
+        addOnFrameListener(format, new Size(-1, -1), directBuffer, transform, listener);
+    }
+
+    public void addOnFrameListener(FrameFormat format,
+                                   Size outputSize,
+                                   boolean directBuffer,
+                                   Transform transform,
+                                   OnFrameListener listener) {
         if (listener == null) {
             return;
         }
-        removeOnFrameListener(format, listener);
+        removeOnFrameListener(listener);
         run(() -> {
-            EglImageReader imageReader = new EglImageReader(format, outputWidth, outHeight);
-            imageReader.onCreateListener = (surface, width, height) ->
-                    run(() -> eglCore.putSurface(surface, width, height, format, transform));
-            imageReader.onCloseListener = SurfaceExtractor.this::removeOutputSurface;
-            imageReader.onFrameListener = listener;
-            imageReader.updateInputSize(inputWidth, inputHeight);
-            imageReaderList.add(imageReader);
+            EglFrameReaderHelper imageReader = new EglFrameReaderHelper(
+                    format, outputSize, directBuffer, new EglFrameReaderHelper.Adapter() {
+                @Override
+                public EglFrameReader onCreate(FrameFormat format, Size size, boolean directBuffer) {
+                    EglFrameReader reader = eglCore.createFrameReader(format, size, directBuffer);
+                    run(() -> eglCore.putFrameReader(reader, transform));
+                    return reader;
+                }
+
+                @Override
+                public void onClose(EglFrameReader reader) {
+                    run(() -> eglCore.removeFrameReader(reader));
+                }
+
+                @Override
+                public void onFrame(ByteBuffer frame, Size resolution, FrameFormat format) {
+                    listener.onFrame(frame, resolution, format);
+                }
+            });
+            imageReader.updateInputSize(inputSize);
+            onFrameListenerMap.put(listener, imageReader);
         });
     }
 
-    public void removeOnFrameListener(OnImageFrameListener listener) {
-        removeOnFrameListener(null, listener);
-    }
-
-    public void removeOnFrameListener(FrameFormat format, OnImageFrameListener listener) {
+    public void removeOnFrameListener(OnFrameListener listener) {
         awaitRun(() -> {
-            Iterator<EglImageReader> iterator = imageReaderList.iterator();
-            while (iterator.hasNext()) {
-                EglImageReader reader = iterator.next();
-                if (Objects.equals(listener, reader.onFrameListener)
-                        && (format == null || format == reader.getFormat())) {
-                    iterator.remove();
-                    reader.release();
-                }
+            EglFrameReaderHelper helper = onFrameListenerMap.remove(listener);
+            if (helper != null) {
+                helper.close();
             }
         });
     }
@@ -145,14 +161,10 @@ public class SurfaceExtractor {
     }
 
     private void onInputSizeChange(int width, int height) {
-        if (inputWidth == width && inputHeight == height) {
-            return;
-        }
+        inputSize = new Size(width, height);
         Log.i(TAG, "onInputSizeChange: " + width + " x " + height);
-        inputWidth = width;
-        inputHeight = height;
-        for (EglImageReader imageReader : imageReaderList) {
-            imageReader.updateInputSize(width, height);
+        for (EglFrameReaderHelper imageReader : onFrameListenerMap.values()) {
+            imageReader.updateInputSize(inputSize);
         }
     }
 
@@ -160,15 +172,14 @@ public class SurfaceExtractor {
         try {
             surfaceTexture.updateTexImage();
             surfaceTexture.getTransformMatrix(textureMatrix);
-            int[] texSize = new int[2];
+            texSize[0] = 0;
+            texSize[1] = 0;
             if (EglTool.getRealOESTexSize(oesTextureId, textureMatrix, texSize)) {
-                int texWidth = texSize[0];
-                int texHeight = texSize[1];
-                if (texWidth >= 0 && texWidth != inputWidth && texHeight >= 0 && texHeight != inputHeight) {
-                    onInputSizeChange(texWidth, texHeight);
+                if (texSize[0] != inputSize.getWidth() || texSize[1] != inputSize.getHeight()) {
+                    onInputSizeChange(texSize[0], texSize[1]);
                 }
             }
-            eglCore.drawOESTexture(oesTextureId, inputWidth, inputHeight, textureMatrix);
+            eglCore.drawOESTexture(oesTextureId, inputSize, textureMatrix);
         } catch (Exception e) {
             Log.w(TAG, "drawSurface fail: " + e, e);
         }

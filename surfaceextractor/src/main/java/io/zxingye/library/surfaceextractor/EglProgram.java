@@ -1,7 +1,9 @@
 package io.zxingye.library.surfaceextractor;
 
+import android.media.ImageReader;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
+import android.util.Size;
 
 public abstract class EglProgram implements AutoCloseable {
 
@@ -29,11 +31,14 @@ public abstract class EglProgram implements AutoCloseable {
     protected int programId;
 
 
-    protected abstract void viewport(int width, int height);
+    protected abstract int getRealViewportWidth(int width);
 
-    protected abstract void onDrawBefore(int width, int height);
+    protected abstract int getRealViewportHeight(int height);
 
-    protected abstract void onDrawAfter(int width, int height);
+    protected abstract void onDraw(int width, int height);
+
+
+    public abstract FrameFormat getFrameFormat();
 
     protected EglProgram(String pixelShaderStr, EglBufferObjectHolder eglBOHolder) {
         this.eglBOHolder = eglBOHolder;
@@ -64,7 +69,7 @@ public abstract class EglProgram implements AutoCloseable {
     public void draw(int viewportWidth, int viewportHeight) {
         EglTool.checkGlError("draw start");
 
-        viewport(viewportWidth, viewportHeight);
+        GLES20.glViewport(0, 0, getRealViewportWidth(viewportWidth), getRealViewportHeight(viewportHeight));
         EglTool.checkGlError("viewport");
 
         // Select the program.
@@ -74,16 +79,21 @@ public abstract class EglProgram implements AutoCloseable {
         GLES30.glBindVertexArray(vertexVAO);
         EglTool.checkGlError("glBindVertexArray");
 
-        onDrawBefore(viewportWidth, viewportHeight);
+        onDraw(viewportWidth, viewportHeight);
 
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, eglBOHolder.getVertexCount());
         EglTool.checkGlError("glDrawArrays");
-
-        onDrawAfter(viewportWidth, viewportHeight);
 
         GLES30.glBindVertexArray(0);
         GLES20.glUseProgram(0);
 
         EglTool.checkGlError("draw");
+    }
+
+    public EglFrameReader createEglFrameReader(Size size, boolean directBuffer) {
+        ImageReader reader = EglTool.createImageReader(
+                getRealViewportWidth(size.getWidth()),
+                getRealViewportHeight(size.getHeight()));
+        return new EglFrameReader(reader, getFrameFormat(), size, directBuffer);
     }
 }

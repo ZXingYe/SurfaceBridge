@@ -2,6 +2,7 @@ package io.zxingye.library.surfaceextractor;
 
 public enum FrameFormat {
     RGBA_8888,
+    RGBX_8888,
     YU12,
     YV12,
     I444,

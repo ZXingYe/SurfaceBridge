@@ -381,10 +381,10 @@ public final class EglTool {
         }
     }
 
-    public static void releaseEGLSurfaceHolder(EGLDisplay display, Collection<EglCore.EGLSurfaceHolder> holders) {
+    public static void releaseEGLSurfaceHolder(EGLDisplay display, Collection<EglCore.EglSurfaceHolder> holders) {
         EGLSurface[] surfaceArr = new EGLSurface[holders.size()];
         int i = 0;
-        for (EglCore.EGLSurfaceHolder holder : holders) {
+        for (EglCore.EglSurfaceHolder holder : holders) {
             surfaceArr[i++] = holder.eglSurface;
         }
         releaseSurfaces(display, surfaceArr);

@@ -1,9 +1,5 @@
 package io.zxingye.library.surfaceextractor;
 
-import android.annotation.SuppressLint;
-import android.media.ImageReader;
-import android.opengl.GLES20;
-
 public class EglProgramI444 extends EglProgram {
 
     public EglProgramI444(EglBufferObjectHolder eglBOHolder) {
@@ -11,23 +7,23 @@ public class EglProgramI444 extends EglProgram {
     }
 
     @Override
-    protected void viewport(int width, int height) {
-        GLES20.glViewport(0, 0, width / 4, height * 3);
+    protected int getRealViewportWidth(int width) {
+        return width / 4;
     }
 
     @Override
-    protected void onDrawBefore(int width, int height) {
+    protected int getRealViewportHeight(int height) {
+        return height * 3;
+    }
+
+    @Override
+    protected void onDraw(int width, int height) {
         // do nothing
     }
 
     @Override
-    protected void onDrawAfter(int width, int height) {
-        // do nothing
-    }
-
-    @SuppressLint("WrongConstant")
-    public static ImageReader createImageReader(int width, int height) {
-        return EglTool.createImageReader(width / 4, height * 3);
+    public FrameFormat getFrameFormat() {
+        return FrameFormat.I444;
     }
 
     private static final String FRAGMENT_SHADER_RGB_TO_I444 = "" +

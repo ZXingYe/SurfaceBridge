@@ -1,7 +1,5 @@
 package io.zxingye.library.surfaceextractor;
 
-import android.annotation.SuppressLint;
-import android.media.ImageReader;
 import android.opengl.GLES20;
 
 public class EglProgramNV21 extends EglProgram {
@@ -14,23 +12,23 @@ public class EglProgramNV21 extends EglProgram {
     }
 
     @Override
-    protected void viewport(int width, int height) {
-        GLES20.glViewport(0, 0, width / 4, (int) (height * 1.5f));
+    protected int getRealViewportWidth(int width) {
+        return width / 4;
     }
 
     @Override
-    protected void onDrawBefore(int width, int height) {
-        GLES20.glUniform1f(offsetLoc, (float) (1.f / (float) width));
+    protected int getRealViewportHeight(int height) {
+        return (int) (height * 1.5f);
     }
 
     @Override
-    protected void onDrawAfter(int width, int height) {
-        // do nothing
+    protected void onDraw(int width, int height) {
+        GLES20.glUniform1f(offsetLoc, 1.f / (float) width);
     }
 
-    @SuppressLint("WrongConstant")
-    public static ImageReader createImageReader(int width, int height) {
-        return EglTool.createImageReader(width / 4, (int) (height * 1.5));
+    @Override
+    public FrameFormat getFrameFormat() {
+        return FrameFormat.NV21;
     }
 
     private static final String FRAGMENT_SHADER_RGB_TO_NV21 = "" +

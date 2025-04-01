@@ -26,6 +26,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.zxingye.library.surfaceextractor.FrameFormat;
-import io.zxingye.library.surfaceextractor.OnImageFrameListener;
+import io.zxingye.library.surfaceextractor.OnFrameListener;
 import io.zxingye.library.surfaceextractor.SurfaceExtractor;
 import io.zxingye.library.surfaceextractor.demo.databinding.ActivityMainBinding;
 import io.zxingye.library.surfaceextractor.demo.source.Camera2TexSource;
@@ -251,27 +252,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupFrameDownloader() {
         Map<String, FrameFormat> formatMap = new LinkedHashMap<>();
-        formatMap.put("RGBA_8888", FrameFormat.RGBA_8888);
-        formatMap.put("YU12", FrameFormat.YU12);
-        formatMap.put("YV12", FrameFormat.YV12);
-        formatMap.put("NV12", FrameFormat.NV12);
-        formatMap.put("NV21", FrameFormat.NV21);
-        formatMap.put("YUVY", FrameFormat.YUVY);
-        formatMap.put("YUYV", FrameFormat.YUYV);
-        formatMap.put("YVYU", FrameFormat.YVYU);
-        formatMap.put("UYVY", FrameFormat.UYVY);
-        formatMap.put("VYUY", FrameFormat.VYUY);
-        formatMap.put("I444", FrameFormat.I444);
+        for(FrameFormat format:FrameFormat.values()){
+            formatMap.put(format.name(), format);
+        }
         String[] items = formatMap.keySet().toArray(new String[0]);
 
-        OnImageFrameListener captureOnceListener = new OnImageFrameListener() {
+        OnFrameListener captureOnceListener = new OnFrameListener() {
             @Override
-            public void onFrame(byte[] frameData, int offset, int length, int width, int height, FrameFormat format) {
-                surfaceExtractor.removeOnFrameListener(format, this);
+            public void onFrame(ByteBuffer frameData, Size resolution, FrameFormat format) {
+                surfaceExtractor.removeOnFrameListener(this);
                 String formatName = format.name().toLowerCase().replace("_", "");
                 File saveFile = new File(getExternalFilesDir(null), "frame." + formatName);
                 try (FileOutputStream out = new FileOutputStream(saveFile)) {
-                    out.write(frameData, offset, length);
+                    //noinspection ResultOfMethodCallIgnored
+                    out.getChannel().write(frameData);
                     showHintDialog("Capture Successful", "Save to: " + saveFile);
                 } catch (Exception e) {
                     showToast("Capture frame fail: " + e);

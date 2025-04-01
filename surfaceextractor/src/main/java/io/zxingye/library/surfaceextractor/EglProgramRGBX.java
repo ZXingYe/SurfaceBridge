@@ -1,9 +1,9 @@
 package io.zxingye.library.surfaceextractor;
 
-public class EglProgramRGBA extends EglProgram {
+public class EglProgramRGBX extends EglProgram {
 
-    public EglProgramRGBA(EglBufferObjectHolder eglBOHolder) {
-        super(FRAGMENT_SHADER_RGB, eglBOHolder);
+    public EglProgramRGBX(EglBufferObjectHolder eglBOHolder) {
+        super(FRAGMENT_SHADER_RGBX, eglBOHolder);
     }
 
     @Override
@@ -23,10 +23,10 @@ public class EglProgramRGBA extends EglProgram {
 
     @Override
     public FrameFormat getFrameFormat() {
-        return FrameFormat.RGBA_8888;
+        return FrameFormat.RGBX_8888;
     }
 
-    private static final String FRAGMENT_SHADER_RGB = "" +
+    private static final String FRAGMENT_SHADER_RGBX = "" +
             "#version 300 es\n" +
             "#extension GL_OES_EGL_image_external_essl3 : require\n" +
             "precision highp float;\n" +
@@ -35,5 +35,6 @@ public class EglProgramRGBA extends EglProgram {
             "layout(location = 0) out vec4 outColor;\n" +
             "void main() {\n" +
             "    outColor = texture(sTexture, v_texCoord);\n" +
+            "    outColor.a = 1.0;\n" +
             "}\n";
 }

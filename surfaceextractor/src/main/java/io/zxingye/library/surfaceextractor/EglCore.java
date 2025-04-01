@@ -10,10 +10,12 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.opengl.GLException;
 import android.util.Log;
+import android.util.Size;
 import android.view.Surface;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import io.zxingye.library.surfaceextractor.transform.Transform;
 
@@ -37,8 +39,8 @@ public class EglCore implements AutoCloseable {
     }
 
 
-    private final Map<Surface, EGLSurfaceHolder> eglSurfaceMap = new HashMap<>();
-    private final Map<FrameFormat, EglProgram> texture2dProgramMap = new HashMap<>();
+    private final Map<Surface, EglSurfaceHolder> eglSurfaceMap = new HashMap<>();
+    private final Map<FrameFormat, EglProgram> eglProgramMap = new HashMap<>();
     private final EglVertexCoord eglVertexCoord = new EglVertexCoord();
     private final EGLDisplay eglDisplay;
     private final EGLContext eglContext;
@@ -57,18 +59,29 @@ public class EglCore implements AutoCloseable {
 
             eglBOHolder = new EglBufferObjectHolder(2);
 
-            texture2dProgramMap.put(FrameFormat.RGBA_8888, new EglProgramRGBA(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.YU12, new EglProgramYU12(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.YV12, new EglProgramYV12(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.NV12, new EglProgramNV12(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.NV21, new EglProgramNV21(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.I444, new EglProgramI444(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.YUVY, new EglProgramYUVY(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.YUYV, new EglProgramYUYV(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.YVYU, new EglProgramYVYU(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.UYVY, new EglProgramUYVY(eglBOHolder));
-            texture2dProgramMap.put(FrameFormat.VYUY, new EglProgramVYUY(eglBOHolder));
-            Log.i(TAG, "version = " + GLES20.glGetString(GLES20.GL_VERSION));
+            EglProgram[] supportProgram = {
+                    new EglProgramRGBA(eglBOHolder),
+                    new EglProgramRGBX(eglBOHolder),
+                    new EglProgramYU12(eglBOHolder),
+                    new EglProgramYV12(eglBOHolder),
+                    new EglProgramNV12(eglBOHolder),
+                    new EglProgramNV21(eglBOHolder),
+                    new EglProgramI444(eglBOHolder),
+                    new EglProgramYUVY(eglBOHolder),
+                    new EglProgramYUYV(eglBOHolder),
+                    new EglProgramYVYU(eglBOHolder),
+                    new EglProgramUYVY(eglBOHolder),
+                    new EglProgramVYUY(eglBOHolder),
+            };
+
+            for (EglProgram program : supportProgram) {
+                if (eglProgramMap.containsKey(program.getFrameFormat())) {
+                    throw new GLException(-1, "repeated format");
+                }
+                eglProgramMap.put(program.getFrameFormat(), program);
+            }
+            Log.i(TAG, "version = " + GLES20.glGetString(GLES20.GL_VERSION)
+                    + ", supportFormat = " + eglProgramMap.keySet());
         } catch (Throwable e) {
             close();
             throw e;
@@ -79,20 +92,30 @@ public class EglCore implements AutoCloseable {
     public void close() {
         if (!isRelease) {
             EglTool.releaseEGLSurfaceHolder(eglDisplay, eglSurfaceMap.values());
-            EglTool.releaseEglProgram(texture2dProgramMap.values());
+            EglTool.releaseEglProgram(eglProgramMap.values());
             eglBOHolder.close();
             EglTool.release(eglDisplay, eglContext);
-            texture2dProgramMap.clear();
+            eglProgramMap.clear();
             eglSurfaceMap.clear();
             isRelease = true;
         }
     }
 
-    public void drawOESTexture(int texId, int texWidth, int texHeight, float[] texMatrix) {
+    public int createOESTextureObject() {
+        return EglTool.createOESTexture();
+    }
+
+    public void deleteOESTextureObject(int textureID) {
+        if (!isRelease) {
+            EglTool.deleteOESTexture(textureID);
+        }
+    }
+
+    public void drawOESTexture(int texId, Size texSize, float[] texMatrix) {
         if (isRelease || eglSurfaceMap.isEmpty()) {
             return;
         }
-        if (texWidth <= 0 || texHeight <= 0) {
+        if (texSize.getWidth() <= 0 || texSize.getHeight() <= 0) {
             Log.w(TAG, "skip draw: texture size = 0");
             return;
         }
@@ -101,12 +124,12 @@ public class EglCore implements AutoCloseable {
 
         eglBOHolder.updateTexMatrixUbo(texMatrix);
 
-        for (EGLSurfaceHolder surfaceHolder : eglSurfaceMap.values()) {
+        for (EglSurfaceHolder surfaceHolder : eglSurfaceMap.values()) {
             if (!surfaceHolder.surface.isValid()) {
                 Log.w(TAG, "skip draw: surface is invalid: " + surfaceHolder.surface);
                 continue;
             }
-            EglProgram program = texture2dProgramMap.get(surfaceHolder.format);
+            EglProgram program = eglProgramMap.get(surfaceHolder.format);
             if (program == null) {
                 Log.w(TAG, "skip draw: program == null, format = " + surfaceHolder.format);
                 return;
@@ -121,7 +144,7 @@ public class EglCore implements AutoCloseable {
             }
 
             eglVertexCoord.updateViewport(surfaceWidth, surfaceHeight);
-            float[] vertex = eglVertexCoord.getVertexCoord(texWidth, texHeight, surfaceHolder.transform);
+            float[] vertex = eglVertexCoord.getVertexCoord(texSize.getWidth(), texSize.getHeight(), surfaceHolder.transform);
             eglBOHolder.updateVertexCoordinate(vertex);
 
             EglTool.makeCurrent(eglDisplay, eglContext, surfaceHolder.eglSurface);
@@ -135,62 +158,32 @@ public class EglCore implements AutoCloseable {
         }
     }
 
-    public void deleteOESTextureObject(int textureID) {
-        if (!isRelease) {
-            EglTool.deleteOESTexture(textureID);
+    public EglFrameReader createFrameReader(FrameFormat format, Size size, boolean directBuffer) {
+        EglProgram eglProgram = eglProgramMap.get(format);
+        if (eglProgram == null) {
+            return null;
         }
+        return eglProgram.createEglFrameReader(size, directBuffer);
     }
 
-    public void putSurface(Surface surface, int width, int height, FrameFormat format, Transform transform) {
-        if (isRelease) {
-            return;
-        }
-        if (surface == null || !surface.isValid()) {
-            Log.w(TAG, "putSurface fail",
-                    new IllegalArgumentException("surface is not available, name = " + surface));
-            return;
-        }
-        if (!texture2dProgramMap.containsKey(format)) {
-            Log.w(TAG, "putSurface fail",
-                    new IllegalArgumentException("format is not supported, format = " + format));
-            return;
-        }
-        EGLSurfaceHolder info = eglSurfaceMap.get(surface);
-        EGLSurface eglSurface;
-        if (info == null) {
-            try {
-                eglSurface = EglTool.createEGLSurface(eglDisplay, eglConfig, surface);
-            } catch (Exception e) {
-                Log.w(TAG, "putSurface fail: " + e, e);
-                return;
-            }
-        } else {
-            eglSurface = info.eglSurface;
-        }
-        eglSurfaceMap.put(surface, new EGLSurfaceHolder(
-                surface,
-                width,
-                height,
-                eglSurface,
-                format,
-                transform));
-        Log.i(TAG, "putSurface: " +
-                "format = " + format + ", " +
-                "width = " + width + ", " +
-                "height = " + height + ", " +
-                "surface = " + surface + ", " +
-                "allSurfaceCount = " + eglSurfaceMap.size());
+    public void putFrameReader(EglFrameReader reader, Transform transform) {
+        updateSurface(
+                reader.getSurface(),
+                reader.getSize(),
+                reader.getFormat(),
+                transform);
+    }
+
+    public void removeFrameReader(EglFrameReader reader) {
+        updateSurface(reader.getSurface(), null, null, null);
+    }
+
+    public void putSurface(Surface surface, Size surfaceSize, Transform transform) {
+        updateSurface(surface, surfaceSize, FrameFormat.RGBA_8888, transform);
     }
 
     public void removeSurface(Surface surface) {
-        if (surface == null || isRelease) {
-            return;
-        }
-        EGLSurfaceHolder info = eglSurfaceMap.get(surface);
-        if (info != null && info.eglSurface != EGL14.EGL_NO_SURFACE) {
-            EglTool.releaseSurface(eglDisplay, eglContext, info.eglSurface);
-            eglSurfaceMap.remove(surface);
-        }
+        updateSurface(surface, null, null, null);
     }
 
     public boolean hasSurface(Surface surface) {
@@ -205,44 +198,80 @@ public class EglCore implements AutoCloseable {
         return eglContext;
     }
 
-    public int createOESTextureObject() {
-        return EglTool.createOESTexture();
+    private void updateSurface(Surface surface, Size surfaceSize, FrameFormat format, Transform transform) {
+        if (isRelease) {
+            return;
+        }
+        if (!Objects.requireNonNull(surface).isValid() || surfaceSize == null) {
+            EglSurfaceHolder info = eglSurfaceMap.get(surface);
+            if (info != null && info.eglSurface != EGL14.EGL_NO_SURFACE) {
+                EglTool.releaseSurface(eglDisplay, eglContext, info.eglSurface);
+                eglSurfaceMap.remove(surface);
+            }
+            return;
+        }
+        if (!eglProgramMap.containsKey(format)) {
+            Log.w(TAG, "updateSurface fail",
+                    new IllegalArgumentException("format is not supported, format = " + format));
+            return;
+        }
+        EglSurfaceHolder info = eglSurfaceMap.get(surface);
+        EGLSurface eglSurface;
+        if (info == null) {
+            try {
+                eglSurface = EglTool.createEGLSurface(eglDisplay, eglConfig, surface);
+            } catch (Exception e) {
+                Log.w(TAG, "updateSurface fail: " + e, e);
+                return;
+            }
+        } else {
+            eglSurface = info.eglSurface;
+        }
+        eglSurfaceMap.put(surface, new EglSurfaceHolder(
+                surface,
+                surfaceSize,
+                eglSurface,
+                format,
+                transform));
+        Log.i(TAG, "updateSurface: " +
+                "format = " + format + ", " +
+                "size = " + surfaceSize + ", " +
+                "surface = " + surface + ", " +
+                "currentSurfaceCount = " + eglSurfaceMap.size());
     }
 
-    public static class EGLSurfaceHolder {
+
+    protected static class EglSurfaceHolder {
         public final Surface surface;
-        public final int surfaceWidth;
-        public final int surfaceHeight;
+        public final Size surfaceSize;
         public final FrameFormat format;
         public final Transform transform;
         public final EGLSurface eglSurface;
 
 
-        public EGLSurfaceHolder(Surface surface,
-                                int width,
-                                int height,
+        public EglSurfaceHolder(Surface surface,
+                                Size surfaceSize,
                                 EGLSurface eglSurface,
                                 FrameFormat format,
                                 Transform transform) {
             this.surface = surface;
             this.eglSurface = eglSurface;
-            this.surfaceWidth = width;
-            this.surfaceHeight = height;
+            this.surfaceSize = surfaceSize;
             this.format = format;
             this.transform = transform;
         }
 
         public int getSurfaceWidth(EGLDisplay display) {
-            if (surfaceWidth > 0) {
-                return surfaceWidth;
+            if (surfaceSize != null && surfaceSize.getWidth() > 0) {
+                return surfaceSize.getWidth();
             } else {
                 return EglTool.getSurfaceWidth(display, eglSurface);
             }
         }
 
         public int getSurfaceHeight(EGLDisplay display) {
-            if (surfaceHeight > 0) {
-                return surfaceHeight;
+            if (surfaceSize != null && surfaceSize.getHeight() > 0) {
+                return surfaceSize.getHeight();
             } else {
                 return EglTool.getSurfaceHeight(display, eglSurface);
             }
