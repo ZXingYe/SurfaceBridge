@@ -8,9 +8,7 @@ import android.view.Surface;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Objects;
 
 import io.zxingye.library.surfaceextractor.transform.Transform;
 

@@ -34,6 +34,7 @@ public class EglFrameReaderHelper implements AutoCloseable {
     public synchronized void close() {
         if (frameReader != null) {
             frameReader.close();
+            adapter.onClose(frameReader);
             frameReader = null;
         }
         dispatcherHandler.removeCallbacksAndMessages(null);
