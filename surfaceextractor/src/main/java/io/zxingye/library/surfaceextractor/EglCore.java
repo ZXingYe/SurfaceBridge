@@ -62,6 +62,8 @@ public class EglCore implements AutoCloseable {
             EglProgram[] supportProgram = {
                     new EglProgramRGBA(eglBOHolder),
                     new EglProgramRGBX(eglBOHolder),
+                    new EglProgramBGRA(eglBOHolder),
+                    new EglProgramBGRX(eglBOHolder),
                     new EglProgramYU12(eglBOHolder),
                     new EglProgramYV12(eglBOHolder),
                     new EglProgramNV12(eglBOHolder),
