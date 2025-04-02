@@ -57,13 +57,14 @@ public class EglCore implements AutoCloseable {
             eglContext = EglTool.createContext(eglDisplay, eglConfig, shareContext);
             EglTool.makeCurrent(eglDisplay, eglContext, EGL14.EGL_NO_SURFACE);
 
-            eglBOHolder = new EglBufferObjectHolder(2);
+            eglBOHolder = new EglBufferObjectHolder();
 
             EglProgram[] supportProgram = {
                     new EglProgramRGBA(eglBOHolder),
                     new EglProgramRGBX(eglBOHolder),
                     new EglProgramBGRA(eglBOHolder),
                     new EglProgramBGRX(eglBOHolder),
+                    new EglProgramRGB888(eglBOHolder),
                     new EglProgramYU12(eglBOHolder),
                     new EglProgramYV12(eglBOHolder),
                     new EglProgramNV12(eglBOHolder),

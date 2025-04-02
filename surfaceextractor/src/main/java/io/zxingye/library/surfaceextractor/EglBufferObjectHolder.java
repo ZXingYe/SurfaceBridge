@@ -31,6 +31,8 @@ public class EglBufferObjectHolder implements AutoCloseable {
             1.0f, 1.0f
     };
 
+    private static final int DEFAULT_DIMENSIONAL = 2;
+
     private final FloatBuffer vertexCoordBuffer;
     private final FloatBuffer texCoordBuffer;
     private final FloatBuffer mvpMatrixBuffer;
@@ -42,6 +44,10 @@ public class EglBufferObjectHolder implements AutoCloseable {
     private int texCoordVbo;
     private int mvpMatrixUbo;
     private int texMatrixUbo;
+
+    public EglBufferObjectHolder() {
+        this(DEFAULT_DIMENSIONAL);
+    }
 
     public EglBufferObjectHolder(int dimensional) {
         if (dimensional <= 0) {

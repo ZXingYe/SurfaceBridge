@@ -1,5 +1,6 @@
 package io.zxingye.library.surfaceextractor;
 
+import android.graphics.PixelFormat;
 import android.media.ImageReader;
 import android.opengl.GLES20;
 import android.opengl.GLES30;
@@ -93,7 +94,8 @@ public abstract class EglProgram implements AutoCloseable {
     public EglFrameReader createEglFrameReader(Size size, boolean directBuffer) {
         ImageReader reader = EglTool.createImageReader(
                 getRealViewportWidth(size.getWidth()),
-                getRealViewportHeight(size.getHeight()));
+                getRealViewportHeight(size.getHeight()),
+                PixelFormat.RGBA_8888);
         return new EglFrameReader(reader, getFrameFormat(), size, directBuffer);
     }
 }

@@ -390,15 +390,14 @@ public final class EglTool {
         releaseSurfaces(display, surfaceArr);
     }
 
-
-    public static ImageReader createImageReader(int width, int height) {
+    public static ImageReader createImageReader(int width, int height, int format) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             long usage = HardwareBuffer.USAGE_GPU_COLOR_OUTPUT | HardwareBuffer.USAGE_CPU_READ_OFTEN;
-            if (HardwareBuffer.isSupported(width, height, HardwareBuffer.RGBA_8888, 1, usage)) {
-                return ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2, usage);
+            if (HardwareBuffer.isSupported(width, height, format, 1, usage)) {
+                return ImageReader.newInstance(width, height, format, 2, usage);
             }
         }
-        return ImageReader.newInstance(width, height, PixelFormat.RGBA_8888, 2);
+        return ImageReader.newInstance(width, height, format, 2);
     }
 
     public static FloatBuffer createFloatBuffer(int floatCount) {

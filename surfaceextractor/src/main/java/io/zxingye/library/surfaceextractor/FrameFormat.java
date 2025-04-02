@@ -5,6 +5,7 @@ public enum FrameFormat {
     RGBX_8888,
     BGRA_8888,
     BGRX_8888,
+    RGB_888,
     YU12,
     YV12,
     I444,
