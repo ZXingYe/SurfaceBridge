@@ -36,9 +36,6 @@ public abstract class EglProgram implements AutoCloseable {
 
     protected abstract int getRealViewportHeight(int height);
 
-    protected abstract void onDraw(int width, int height);
-
-
     public abstract FrameFormat getFrameFormat();
 
     protected EglProgram(String pixelShaderStr, EglBufferObjectHolder eglBOHolder) {
@@ -60,7 +57,6 @@ public abstract class EglProgram implements AutoCloseable {
 
     @Override
     public void close() {
-        GLES20.glUseProgram(0);
         EglTool.deleteVao(vertexVAO);
         EglTool.deleteProgram(programId);
         vertexVAO = 0;
@@ -68,27 +64,13 @@ public abstract class EglProgram implements AutoCloseable {
     }
 
     public void draw(int viewportWidth, int viewportHeight) {
-        EglTool.checkGlError("draw start");
-
-        GLES20.glViewport(0, 0, getRealViewportWidth(viewportWidth), getRealViewportHeight(viewportHeight));
-        EglTool.checkGlError("viewport");
-
-        // Select the program.
-        GLES20.glUseProgram(programId);
-        EglTool.checkGlError("glUseProgram");
-
-        GLES30.glBindVertexArray(vertexVAO);
-        EglTool.checkGlError("glBindVertexArray");
-
+        EglTool.setShaderProgram(programId);
+        EglTool.setViewportSize(getRealViewportWidth(viewportWidth), getRealViewportHeight(viewportHeight));
         onDraw(viewportWidth, viewportHeight);
+    }
 
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, eglBOHolder.getVertexCount());
-        EglTool.checkGlError("glDrawArrays");
-
-        GLES30.glBindVertexArray(0);
-        GLES20.glUseProgram(0);
-
-        EglTool.checkGlError("draw");
+    protected void onDraw(int width, int height) {
+        EglTool.drawArraysByVao(vertexVAO, GLES20.GL_TRIANGLE_STRIP, eglBOHolder.getVertexCount());
     }
 
     public EglFrameReader createEglFrameReader(Size size, boolean directBuffer) {

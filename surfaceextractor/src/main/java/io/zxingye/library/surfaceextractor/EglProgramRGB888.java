@@ -24,6 +24,7 @@ public class EglProgramRGB888 extends EglProgram {
     @Override
     protected void onDraw(int width, int height) {
         GLES20.glUniform1f(uWidth, width);
+        super.onDraw(width, height);
     }
 
     @Override

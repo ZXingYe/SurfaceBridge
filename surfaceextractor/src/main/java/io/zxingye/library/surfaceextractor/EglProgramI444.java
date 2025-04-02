@@ -17,11 +17,6 @@ public class EglProgramI444 extends EglProgram {
     }
 
     @Override
-    protected void onDraw(int width, int height) {
-        // do nothing
-    }
-
-    @Override
     public FrameFormat getFrameFormat() {
         return FrameFormat.I444;
     }

@@ -1,7 +1,6 @@
 package io.zxingye.library.surfaceextractor;
 
 import android.graphics.Color;
-import android.graphics.PixelFormat;
 import android.hardware.HardwareBuffer;
 import android.media.ImageReader;
 import android.opengl.EGL14;
@@ -134,6 +133,28 @@ public final class EglTool {
         if (!EGL14.eglMakeCurrent(display, surface, surface, context)) {
             throw new GLException(-1, "makeCurrent fail");
         }
+    }
+
+    public static void setViewportSize(int width, int height) {
+        setViewportSize(0, 0, width, height);
+    }
+
+    public static void setViewportSize(int x, int y, int width, int height) {
+        GLES20.glViewport(0, 0, width, height);
+        checkGlError("glViewport");
+    }
+
+    public static void setShaderProgram(int programId) {
+        GLES20.glUseProgram(programId);
+        EglTool.checkGlError("glUseProgram");
+    }
+
+    public static void drawArraysByVao(int vaoId, int drawMode, int vertexCount) {
+        GLES30.glBindVertexArray(vaoId);
+        EglTool.checkGlError("glBindVertexArray");
+        GLES20.glDrawArrays(drawMode, 0, vertexCount);
+        EglTool.checkGlError("glDrawArrays");
+        GLES30.glBindVertexArray(0);
     }
 
     public static int createOESTexture() {

@@ -27,6 +27,7 @@ public class EglProgramYV12 extends EglProgram {
     protected void onDraw(int width, int height) {
         GLES20.glUniform1f(offsetLoc, 1.f / (float) width);
         GLES20.glUniform2f(imgSizeLoc, width, height);
+        super.onDraw(width, height);
     }
 
     @Override

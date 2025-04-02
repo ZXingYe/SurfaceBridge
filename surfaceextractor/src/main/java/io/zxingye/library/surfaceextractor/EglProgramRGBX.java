@@ -17,11 +17,6 @@ public class EglProgramRGBX extends EglProgram {
     }
 
     @Override
-    protected void onDraw(int width, int height) {
-        // do nothing
-    }
-
-    @Override
     public FrameFormat getFrameFormat() {
         return FrameFormat.RGBX_8888;
     }
