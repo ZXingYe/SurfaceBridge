@@ -2,7 +2,7 @@ package io.zxingye.library.surfaceextractor;
 
 import android.opengl.GLES20;
 
-public class EglProgramYV12 extends EglProgram {
+public class EglProgramYV12 extends EglProgramYUV {
 
     private final int offsetLoc;
     private final int imgSizeLoc;
@@ -44,12 +44,9 @@ public class EglProgramYV12 extends EglProgram {
             "uniform samplerExternalOES s_TextureMap;\n" +
             "uniform float u_Offset;\n" +
             "uniform vec2 u_ImgSize;\n" +
-            "//Y =  0.299R + 0.587G + 0.114B\n" +
-            "//U = -0.147R - 0.289G + 0.436B\n" +
-            "//V =  0.615R - 0.515G - 0.100B\n" +
-            "const vec3 COEF_Y = vec3( 0.299,  0.587,  0.114);\n" +
-            "const vec3 COEF_U = vec3(-0.147, -0.289,  0.436);\n" +
-            "const vec3 COEF_V = vec3( 0.615, -0.515, -0.100);\n" +
+            "uniform vec3 COEF_Y;\n" +
+            "uniform vec3 COEF_U;\n" +
+            "uniform vec3 COEF_V;\n" +
             "const float V_DIVIDE_LINE = 2.0 / 3.0;\n" +
             "const float U_DIVIDE_LINE = 5.0 / 6.0;\n" +
             "void main()\n" +

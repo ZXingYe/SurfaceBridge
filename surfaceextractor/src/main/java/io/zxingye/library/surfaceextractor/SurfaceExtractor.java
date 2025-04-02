@@ -158,6 +158,10 @@ public class SurfaceExtractor {
         run(() -> eglCore.setBackgroundColor(backgroundColor));
     }
 
+    public void setYUVColorSpace(EglYUVColorSpace colorSpace){
+        run(() -> eglCore.setYUVColorSpace(colorSpace));
+    }
+
     private void onInputSizeChange(int width, int height) {
         inputSize = new Size(width, height);
         Log.i(TAG, "onInputSizeChange: " + width + " x " + height);

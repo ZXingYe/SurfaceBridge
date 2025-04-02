@@ -197,6 +197,14 @@ public class EglCore implements AutoCloseable {
         this.backgroundColor = backgroundColor;
     }
 
+    public void setYUVColorSpace(EglYUVColorSpace colorSpace) {
+        for (EglProgram program : eglProgramMap.values()) {
+            if (program instanceof EglProgramYUV) {
+                ((EglProgramYUV) program).setYuvColorSpace(colorSpace);
+            }
+        }
+    }
+
     public EGLContext getEGLContext() {
         return eglContext;
     }
