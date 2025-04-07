@@ -29,19 +29,6 @@ public class EglProgramRGB565 extends EglProgram {
 
     @Override
     public FrameFormat getFrameFormat() {
-        float viewportWidth = u_width / 4.0;
-        float width = v_texCoord.x * viewportWidth;
-        float x = (width * 2 - 1) / u_width;
-        vec2 coord0 = vec2(x, v_texCoord.y);
-        vec2 coord1 = vec2(x + 1.0 / u_width, v_texCoord.y);
-        vec3 color0 = texture(sTexture, coord0).rgb;
-        vec3 color1 = texture(sTexture, coord1).rgb;
-
-        int r0 = int(color0.r);
-        int g0 = int(color0.g);
-        int b0 = int(color0.b);
-
-
         return FrameFormat.RGB_565;
     }
 
@@ -54,23 +41,26 @@ public class EglProgramRGB565 extends EglProgram {
             "uniform float u_width;\n" +
             "layout(location = 0) out vec4 outColor;\n" +
             "void main() {\n" +
-            "     float viewportWidth = u_width / 4.0;\n" +
-            "     float width = v_texCoord.x * viewportWidth;\n" +
-            "     float x = (width * 2 - 1) / u_width;\n" +
-            "     vec2 coordStart = vec2(x, v_texCoord.y);\n" +
-            "     vec2 coordEnd = vec2(x + 1.0 / u_width, v_texCoord.y);\n" +
-            "     vec4 colorStart = texture(sTexture, coordStart);\n" +
-            "     vec4 colorEnd = texture(sTexture, coordEnd);\n" +
-            "     switch (int(ceil(width)) % 3) {\n" +
-            "         case 0:\n" +
-            "             outColor = vec4(colorStart.b, colorEnd.r, colorEnd.g, colorEnd.b);\n" +
-            "             break;\n" +
-            "         case 1:\n" +
-            "             outColor = vec4(colorStart.r, colorStart.g, colorStart.b, colorEnd.r);\n" +
-            "             break;\n" +
-            "         case 2:\n" +
-            "             outColor = vec4(colorStart.g, colorStart.b, colorEnd.r, colorEnd.g);\n" +
-            "             break;\n" +
-            "     }" +
+            "   float viewportWidth = u_width / 4.0;\n" +
+            "   float width = v_texCoord.x * viewportWidth;\n" +
+            "   float x1 = (width * 2.0) / u_width;\n" +
+            "   float x0 = x1 - 1.0 / u_width;\n" +
+            "   vec2 coord0 = vec2(x0, v_texCoord.y);\n" +
+            "   vec2 coord1 = vec2(x1, v_texCoord.y);\n" +
+            "   vec3 color0 = texture(sTexture, coord0).rgb;\n" +
+            "   vec3 color1 = texture(sTexture, coord1).rgb;\n" +
+            "   int r0 = int(round(color0.r * 31.0));\n" +
+            "   int g0 = int(round(color0.g * 63.0));\n" +
+            "   int b0 = int(round(color0.b * 31.0));\n" +
+            "   int output0 = (r0 << 11) | (g0 << 5) | b0;\n" +
+            "   int r1 = int(round(color1.r * 31.0));\n" +
+            "   int g1 = int(round(color1.g * 63.0));\n" +
+            "   int b1 = int(round(color1.b * 31.0));\n" +
+            "   int output1 =  (r1 << 11) | (g1 << 5) | b1;\n" +
+            "   outColor = vec4(\n" +
+            "           float((output0 & 0xFF)),\n" +
+            "           float(((output0 >> 8) & 0xFF)),\n" +
+            "           float((output1 & 0xFF)),\n" +
+            "           float(((output1 >> 8) & 0xFF))) / 255.0;" +
             "}\n";
 }
