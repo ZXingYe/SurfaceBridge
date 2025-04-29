@@ -30,5 +30,5 @@ public class EglProgramBGRA extends EglProgram {
             "layout(location = 0) out vec4 outColor;\n" +
             "void main() {\n" +
             "    outColor = texture(sTexture, v_texCoord).bgra;\n" +
-            "}\n";
+            "}";
 }

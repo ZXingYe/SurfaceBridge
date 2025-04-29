@@ -58,6 +58,6 @@ public class EglProgramRGB888 extends EglProgram {
             "         case 2:\n" +
             "             outColor = vec4(colorStart.g, colorStart.b, colorEnd.r, colorEnd.g);\n" +
             "             break;\n" +
-            "     }" +
-            "}\n";
+            "     }\n" +
+            "}";
 }

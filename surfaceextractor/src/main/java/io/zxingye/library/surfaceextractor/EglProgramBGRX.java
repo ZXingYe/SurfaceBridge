@@ -31,5 +31,5 @@ public class EglProgramBGRX extends EglProgram {
             "void main() {\n" +
             "    outColor = texture(sTexture, v_texCoord).bgra;\n" +
             "    outColor.a = 1.0;\n" +
-            "}\n";
+            "}";
 }
