@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'io.zxingye.library.surfaceextractor.demo'
+    namespace 'io.zxingye.library.surfacebridge.demo'
     compileSdk 35
 
     defaultConfig {
-        applicationId "io.zxingye.library.surfaceextractor"
+        applicationId "io.zxingye.library.surfacebridge"
         minSdk 24
         targetSdk 35
         versionCode 1
@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    implementation project(":surfaceextractor")
+    implementation project(":surfacebridge")
     implementation libs.appcompat
     implementation libs.material
     implementation libs.activity

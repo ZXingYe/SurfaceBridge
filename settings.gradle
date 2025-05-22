@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SurfaceExtractor"
+rootProject.name = "SurfaceBridge"
 include ':app'
-include ':surfaceextractor'
+include ':surfacebridge'
