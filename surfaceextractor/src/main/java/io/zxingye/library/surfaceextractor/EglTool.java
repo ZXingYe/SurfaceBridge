@@ -244,6 +244,12 @@ public final class EglTool {
         } catch (Exception e) {
             return false;
         }
+        if (size[0] >= Short.MAX_VALUE || size[1] >= Short.MAX_VALUE) {
+            return false;
+        }
+        if (size[0] <= 1 && size[1] <= 1) {
+            return false;
+        }
 
         float[] vector = new float[]{size[0], size[1], 0, 1};
         float[] realVector = new float[4];
