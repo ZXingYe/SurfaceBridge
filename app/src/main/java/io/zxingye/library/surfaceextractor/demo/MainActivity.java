@@ -36,7 +36,7 @@ import java.util.Map;
 
 import io.zxingye.library.surfaceextractor.FrameFormat;
 import io.zxingye.library.surfaceextractor.OnFrameListener;
-import io.zxingye.library.surfaceextractor.SurfaceExtractor;
+import io.zxingye.library.surfaceextractor.SurfaceBridge;
 import io.zxingye.library.surfaceextractor.demo.databinding.ActivityMainBinding;
 import io.zxingye.library.surfaceextractor.demo.source.Camera2TexSource;
 import io.zxingye.library.surfaceextractor.demo.source.CameraTexSource;
@@ -56,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
     private final Map<Surface, Boolean> outputSurfaceState = new HashMap<>();
 
     private ActivityMainBinding binding;
-    private SurfaceExtractor surfaceExtractor;
+    private SurfaceBridge surfaceBridge;
     private TexSource texSource;
 
     private Pair<Size, Integer> sourceInfo;
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        surfaceExtractor = SurfaceExtractor.create();
+        surfaceBridge = SurfaceBridge.create();
 
         setupScaleRadioGroup();
         setupSurfaceViewPreview();
@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         switchSurfaceSource(null);
-        surfaceExtractor.release();
+        surfaceBridge.release();
     }
 
     private void setupSurfaceViewPreview() {
@@ -252,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setupFrameDownloader() {
         Map<String, FrameFormat> formatMap = new LinkedHashMap<>();
-        for(FrameFormat format:FrameFormat.values()){
+        for (FrameFormat format : FrameFormat.values()) {
             formatMap.put(format.name(), format);
         }
         String[] items = formatMap.keySet().toArray(new String[0]);
@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity {
         OnFrameListener captureOnceListener = new OnFrameListener() {
             @Override
             public void onFrame(ByteBuffer frameData, Size resolution, FrameFormat format) {
-                surfaceExtractor.removeOnFrameListener(this);
+                surfaceBridge.removeOnFrameListener(this);
                 String formatName = format.name().toLowerCase().replace("_", "");
                 File saveFile = new File(getExternalFilesDir(null), "frame." + formatName);
                 try (FileOutputStream out = new FileOutputStream(saveFile)) {
@@ -290,7 +290,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         String formatName = items[selected[0]];
                         FrameFormat format = formatMap.get(formatName);
-                        surfaceExtractor.addOnFrameListener(format, null, captureOnceListener);
+                        surfaceBridge.addOnFrameListener(format, captureOnceListener);
                     })
                     .show();
         });
@@ -306,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
         }
         texSource = source;
         if (texSource != null) {
-            texSource.start(surfaceExtractor.getInputSurfaceTexture(), new TexSource.OnSurfaceStateListener() {
+            texSource.start(surfaceBridge.getInputSurfaceTexture(), new TexSource.OnSurfaceStateListener() {
                 @Override
                 public void onSizeChange(int width, int height, int rotation) {
                     sourceInfo = new Pair<>(new Size(width, height), rotation);
@@ -324,13 +324,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updatePreview() {
-        if (surfaceExtractor == null) {
+        if (surfaceBridge == null) {
             return;
         }
         int inputWidth = sourceInfo != null ? sourceInfo.first.getWidth() : 0;
         int inputHeight = sourceInfo != null ? sourceInfo.first.getHeight() : 0;
         int rotation = sourceInfo != null ? sourceInfo.second : 0;
-        surfaceExtractor.setDefaultInputBufferSize(inputWidth, inputHeight);
+        surfaceBridge.setDefaultInputBufferSize(inputWidth, inputHeight);
         Transform transform = null;
         View scaleCheckedView = findViewById(scaleCheckedId);
         if (scaleCheckedView != null) {
@@ -348,9 +348,9 @@ public class MainActivity extends AppCompatActivity {
             Surface previewSurface = entry.getKey();
             boolean isNeedPreview = Boolean.TRUE.equals(entry.getValue());
             if (isNeedPreview) {
-                surfaceExtractor.putOutputSurface(previewSurface, transform);
+                surfaceBridge.putOutputSurface(previewSurface, transform);
             } else {
-                surfaceExtractor.removeOutputSurface(previewSurface);
+                surfaceBridge.removeOutputSurface(previewSurface);
                 iterator.remove();
             }
         }

@@ -12,24 +12,24 @@ import java.util.Map;
 
 import io.zxingye.library.surfaceextractor.transform.Transform;
 
-public class SurfaceExtractor {
+public class SurfaceBridge {
 
     private static final String TAG = "GLFrameDispatcher";
 
-    public static SurfaceExtractor create() {
+    public static SurfaceBridge create() {
         return create("SurfaceExtractor");
     }
 
-    public static SurfaceExtractor create(String threadName) {
+    public static SurfaceBridge create(String threadName) {
         Handler eglHandler = Util.createWorkHandler(threadName);
-        SurfaceExtractor[] result = new SurfaceExtractor[1];
+        SurfaceBridge[] result = new SurfaceBridge[1];
         Util.runOn(eglHandler, () -> {
             EglCore core = EglCore.create(null);
             int oesTextureId;
             if (core != null) {
                 oesTextureId = core.createOESTextureObject();
                 if (oesTextureId > 0) {
-                    result[0] = new SurfaceExtractor(core, oesTextureId, eglHandler);
+                    result[0] = new SurfaceBridge(core, oesTextureId, eglHandler);
                 } else {
                     core.close();
                 }
@@ -47,7 +47,7 @@ public class SurfaceExtractor {
     private int oesTextureId;
     private Size inputSize;
 
-    private SurfaceExtractor(EglCore eglCore, int oesTextureId, Handler handler) {
+    private SurfaceBridge(EglCore eglCore, int oesTextureId, Handler handler) {
         this.eglCore = eglCore;
         this.oesTextureId = oesTextureId;
         this.eglHandler = handler;
@@ -88,6 +88,14 @@ public class SurfaceExtractor {
         putOutputSurface(surface, new Size(-1, -1), transform);
     }
 
+    /**
+     * 添加一个输出Surface，可以多次重复put同一个surface，内部会做参数覆盖
+     * 支持指定输出的大小，如果大小是负值，表示不指定，这个时候内部会动态获取实际的surface大小
+     *
+     * @param surface     用于输出的surface，常来源于SurfaceView或TextureView等。
+     * @param surfaceSize 指定输出的大小，不能为空，但是可以为负值。
+     * @param transform   用于做输出变换，比如放大缩小、平移、旋转等操作，如果为null表示不做任何变换
+     */
     public void putOutputSurface(Surface surface,
                                  Size surfaceSize,
                                  Transform transform) {
@@ -99,23 +107,30 @@ public class SurfaceExtractor {
     }
 
     public void addOnFrameListener(FrameFormat format,
-                                   Transform transform,
                                    OnFrameListener listener) {
-        addOnFrameListener(format, false, transform, listener);
+        addOnFrameListener(format, new Size(-1, -1), null, listener);
     }
 
+    /**
+     * 添加一个Listener用于监听帧输出，可以指定帧输出的格式、大小、变换
+     *
+     * @param format     输出的格式
+     * @param outputSize 输出的大小，不能为null，但是可以为负值，表示输出原始大小。
+     * @param transform  帧图像的变换，如果不为空会在输出帧之前进行图像变换，一般用于各种缩放适配。
+     * @param listener   监听器，不同的格式可以公用一个监听器。
+     */
     public void addOnFrameListener(FrameFormat format,
-                                   boolean directBuffer,
+                                   Size outputSize,
                                    Transform transform,
                                    OnFrameListener listener) {
-        addOnFrameListener(format, new Size(-1, -1), directBuffer, transform, listener);
+        addOnFrameListener(format, outputSize, transform, listener, false);
     }
 
     public void addOnFrameListener(FrameFormat format,
                                    Size outputSize,
-                                   boolean directBuffer,
                                    Transform transform,
-                                   OnFrameListener listener) {
+                                   OnFrameListener listener,
+                                   boolean directBuffer) {
         if (listener == null) {
             return;
         }
@@ -158,7 +173,7 @@ public class SurfaceExtractor {
         run(() -> eglCore.setBackgroundColor(backgroundColor));
     }
 
-    public void setYUVColorSpace(EglYUVColorSpace colorSpace){
+    public void setYUVColorSpace(EglYUVColorSpace colorSpace) {
         run(() -> eglCore.setYUVColorSpace(colorSpace));
     }
 
