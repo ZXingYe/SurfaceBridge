@@ -27,9 +27,7 @@ SurfaceBridge支持多种输出格式，比如RGB、YUV420、YUV444等等。当�
 ---
 可以通过运行demo（App module）去学习SurfaceBridge的用法，demo展示了如何渲染来自不同数据源的数据，并且通过设置不同的ScaleType去变换图像。同时也展示了如何去获取不同的原始帧格式。
 
-<img src='readme_src/img_demo_1.png' height='360'/>
-<img src='readme_src/img_demo_2.png' height='360'/>
-<img src='readme_src/img_demo_3.png' height='360'/>
+<img src='readme_src/img_demo_1.png' height='360'/> <img src='readme_src/img_demo_2.png' height='360'/> <img src='readme_src/img_demo_3.png' height='360'/>
 
 ## 引入依赖
 ---
