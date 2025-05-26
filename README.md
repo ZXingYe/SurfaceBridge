@@ -39,14 +39,14 @@ repositories {
 }
 
 dependencies {
-  implementation 'io.zxingye.library:surfacebridge:1.0.0'
+  implementation 'io.github.zxingye:surfacebridge:1.0.0'
 }
 ```
 
 ### Maven
 ```xml
 <dependency>
-  <groupId>io.zxingye.library</groupId>
+  <groupId>io.github.zxingye</groupId>
   <artifactId>surfacebridge</artifactId>
   <version>1.0.0</version>
 </dependency>

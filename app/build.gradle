@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace 'io.zxingye.library.surfacebridge.demo'
+    namespace 'io.zxingye.surfacebridge.demo'
     compileSdk 35
 
     defaultConfig {

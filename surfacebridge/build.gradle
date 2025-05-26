@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.maven.publish)
 }
-apply from: 'build-publish.gradle'
 
 android {
     namespace 'io.zxingye.library.surfacebridge'
@@ -23,6 +23,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
 }
 
 dependencies {
