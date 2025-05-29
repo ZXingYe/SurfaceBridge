@@ -177,7 +177,7 @@ surfaceBridge.setBackgroundColor(color);
 surfaceBridge.setYUVColorSpace(EglYUVColorSpace);
 ```
 
-### 未来
+## 未来
 * 支持10Bit颜色
 * 支持自定义着色器用于帧格式的转换
 * 支持RGB到各种格式的同步转换方法。
