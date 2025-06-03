@@ -37,7 +37,7 @@ import java.util.Map;
 import io.zxingye.surfacebridge.FrameFormat;
 import io.zxingye.surfacebridge.OnFrameListener;
 import io.zxingye.surfacebridge.SurfaceBridge;
-import io.zxingye.library.surfacebridge.demo.databinding.ActivityMainBinding;
+import io.zxingye.surfacebridge.demo.databinding.ActivityMainBinding;
 import io.zxingye.surfacebridge.demo.source.Camera2TexSource;
 import io.zxingye.surfacebridge.demo.source.CameraTexSource;
 import io.zxingye.surfacebridge.demo.source.CanvasTexSource;
